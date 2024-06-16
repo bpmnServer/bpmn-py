@@ -45,9 +45,13 @@ class BPMNClient2(WebService):
             "Accept": "*/*",
             "Connection": "keep-alive"
         }
-
+        
+        if (self.port=='443'):
+            furl=f'https://{self.host}/api2/{url}'
+        else:
+            furl=f'http://{self.host}:{self.port}/api2/{url}'
         options = {
-            'url': f'http://{self.host}:{self.port}/api2/{url}',
+            'url': furl,
             'method': method,
             'headers': headers,
             'data': body
@@ -144,7 +148,7 @@ class ClientModel2:
     def __init__(self, client):
         self.client = client
 
-    def import_model(self, name, path_to_bpmn, path_to_svg=None, user=None):
+    def importModel(self, name, path_to_bpmn, path_to_svg=None, user=None):
         options = {
             'method': 'POST',
             'url': f'http://{self.client.host}:{self.client.port}/api/model/import/{name}',
@@ -159,28 +163,28 @@ class ClientModel2:
         self.check_errors(res)
         return res
 
-    def list_models(self):
+    def listModels(self):
         res =  self.client.get('model/list', [])
         if 'errors' in res:
             print(res['errors'])
             raise Exception(res['errors'])
         return res
 
-    def delete_model(self, name):
+    def deleteModel(self, name):
         res =  self.client.post('model/delete/', {'name': name})
         if 'errors' in res:
             print(res['errors'])
             raise Exception(res['errors'])
         return res
 
-    def rename_model(self, name, new_name):
+    def renameModel(self, name, new_name):
         res =  self.client.post('model/rename/', {'name': name, 'newName': new_name})
         if 'errors' in res:
             print(res['errors'])
             raise Exception(res['errors'])
         return res
 
-    def load_model(self, name):
+    def loadModel(self, name):
         res =  self.client.get(f'model/load/{name}', {'name': name})
         return Response(res)
 
@@ -198,9 +202,7 @@ class Response:
 
     def listItems(self):
         self.hasErrors()
-        for key in self.res: {
-            print(' res key:',key)
-        }
+
 
         for item in self.res['items']: {
             print(' item:',item['seq'],item['elementId'],item['status'])

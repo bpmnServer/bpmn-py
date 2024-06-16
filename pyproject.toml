@@ -1,6 +1,6 @@
 [project]
 name = "bpmnClient"
-version = "0.0.3"
+version = "1.0.1"
 authors = [
   { name="ralph hanna", email="ralphhanna@hotmail.com" },
 ]
