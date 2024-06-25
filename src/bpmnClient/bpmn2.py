@@ -15,9 +15,9 @@ class BPMNClient2(WebService):
         self.host = host
         self.port = port
         self.api_key = api_key
-        self.engine = ClientEngine2(self)
-        self.data = ClientData2(self)
-        self.model = ClientModel2(self)
+        self.engine = Engine(self)
+        self.data = Data(self)
+        self.model = Model(self)
 
     def get(self, url, params=None):
         return  self.request(url, 'GET', params)
@@ -67,8 +67,11 @@ class BPMNClient2(WebService):
             data=options.get('data')
         )
         return response.json()
+    
+    def status(self):
+        return self.get('status')        
 
-class ClientEngine2:
+class Engine:
     def __init__(self, client):
         self.client = client
 
@@ -81,7 +84,7 @@ class ClientEngine2:
         if 'errors' in ret:
             print(ret['errors'])
             raise Exception(ret['errors'])
-        return ret
+        return ret['instance']
 
     def invoke(self, query, data, user, options=None):
         if options is None:
@@ -121,7 +124,7 @@ class ClientEngine2:
             raise Exception(ret['errors'])
         return ret
 
-class ClientData2:
+class Data:
     def __init__(self, client):
         self.client = client
 
@@ -144,7 +147,7 @@ class ClientData2:
     def delete_instances(self, query, user):
         return  self.client.delete('data/deleteInstances', {'query': query, 'user': user})
 
-class ClientModel2:
+class Model:
     def __init__(self, client):
         self.client = client
 
@@ -224,3 +227,58 @@ class Response:
         }
         return self
 
+class DisplayUtil:
+    from IPython.display import HTML , IFrame
+    
+    def displayTable(self,data,cols):
+        html = "<table>"
+        for col in cols:
+            html = f"{html}<th style='text-align:center;'>{col}</th>"
+        for row in data:
+            html = f"{html}<tr>"
+            for col in cols:
+                html = f"{html}<td style='text-align:left;'>{row[col]}</td>"
+            html = f"{html}</tr>"
+        html = f"{html}</table>"
+
+ #       return display(HTML(html))
+
+    def displayItems(self,res):
+        return self.displayTable(res['items'],['seq','elementId', 'status'])
+
+    def displayDiagram(self,name):
+        url = f"https://bpmn.omniworkflow.com/model/getSVg/{name}"
+
+#        return HTML(f"<img src='{url}' width='100%' height='100%'/>")
+
+  #  def displayPage(self,url):
+  #      display(IFrame(url,"100%","100%"))
+        #return HTML(f"<iframe src='{url}' width='100%' height='100%'></iframe>")
+
+    def describeModel(self,model):
+        
+   #     display(HTML('<h2>Elements</h2>'))
+
+        els=[]
+        for el in model.res['elements']:
+            el["property"]=''
+            el["value"]=''
+            els.append(el)
+            for des in el["description"]:
+                el1={"id":'',"type":'',"property":des[0],"value":des[1]}
+                els.append(el1)
+                
+        self.displayTable(els,['id','type','property','value'])
+
+    #    display(HTML('<h2>Sequence Flows</h2>'))
+
+        els=[]
+        for el in model.res['flows']:
+            el["property"]=''
+            el["value"]=''
+            els.append(el)
+            for des in el["description"]:
+                el1={"id":'',"type":'',"property":des[0],"value":des[1]}
+                els.append(el1)
+            
+        self.displayTable(els,['id','type','property','value'])
